@@ -1,0 +1,81 @@
+---
+title: 'R Assignment: Climate, Energy, and Governmental Spending'
+author: "Jessi Florendo"
+date: "April 20, 2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+#install.packages("tidyverse")
+#install.packages("glue")
+#install.packages("backports")
+#install.packages("colorspace")
+#install.packages("stringi")
+#for some reason all of the above^ packages needed to be installed individually to run below command
+library("tidyverse")
+
+climate <- read.csv("climate_spending.csv")
+energy <- read.csv("energy_spending.csv")
+research <- read.csv("fed_r_d_spending.csv")
+```
+
+## General Trends
+
+Figure 1 displays the exponential increase in gross domestic product (GDP) produced from the US from 1976 to 2017, as compared to the total and discretionary governmental spending over the same time period. While governmental spending has demonstratably gone up since 1976, the GDP has more than compensated for this increased spending. Most noticably is the hike from pre-21st century governmental spending to now. Figure 2 breaks down the source of that governmental spending, the highest amount of funding going to the Department of Defense (DOD), the Department of Human and Health Services (HHS), the National Institute of Health (NIH), and Department of Energy (DOE).
+
+```{r trends1, echo=FALSE}
+#info for Figure 1       
+outlays <- research[,c(2,4,5,6)] %>% unique()
+category <- gather(outlays, `total_outlays`,`discretionary_outlays`,`gdp`, key = "category2", value = "USD")
+legend <- filter(category,year == max(year)) %>%
+  arrange(desc(USD)) %>%
+  pull(category2)
+#Figure 1:
+ggplot(category, aes(year, USD, color = category2)) + geom_line(size = 1) + theme_bw() + ylab("Amount of Money [USD]") +
+  xlab("Year") + ggtitle("Figure 1. Total governmental spending compared to gross domestic product (GDP)") +
+  scale_color_manual(breaks = legend, values = c("red", "blue", "limegreen"), name = " ", labels = c(
+    "Gross Domestic Product [GDP]", "Total Governmental Spending", "Discretionary Governmental Spending"))
+```
+
+```{r trends2, echo=FALSE}
+
+#info for Figure 2
+research_budget <- research[,c(1,2,3)] %>% unique()
+legend2 <- filter(research_budget, year == max(year)) %>%
+  arrange(desc(rd_budget)) %>%
+  pull(department)
+#Figure 2:
+ggplot(research_budget, aes(year, rd_budget, color = department)) + geom_line(size = 1) + 
+  scale_color_discrete(breaks = legend2, name = "Department") + ylab("Budget for Research and Development [USD]") +
+  xlab("Year") + ggtitle("Figure 2. Budget per department within US Government") + theme_bw()
+```
+
+## Energy Spending
+
+While no data exists for the top three spenders, the DOE spending is broken down from 1997 to 2018 among its departments in Figure 3. Most money is spent within the departments of Atomic Energy Defense, Science Research and Development (R&D), and Basic Energy Sciences. While the top two have remained the consistent sources of high spending within the DOE, Energy Efficieny and Renewable Energy spending has grown significantly withing the past 5 years to nearly tie with Basic Energy Sciences in 2018.
+
+```{r energy, echo=FALSE}
+#info for Figure 3
+legend3 <- filter(energy, year == max(year)) %>%
+  arrange(desc(energy_spending)) %>%
+  pull(department)
+#Figure 3:
+ggplot(energy, aes(year, energy_spending, color = department)) + geom_line(size=1) +
+  scale_color_discrete(breaks = legend3, name = "Department") + ylab("Money Spent [USD]") +
+  xlab("Year") + theme_bw() + ggtitle("Figure 3. Spending breakdown within DOE")
+```
+
+## Climate Spending
+According to Figure 2, the department with the lowest spending in 2017 and among the lowest historic spending is the Environmental Protection Agency (EPA). Figure 4 breaks down research and development dollars spent on addressing climate change the various departments that this funding was allocated to. As seen in the graph, NASA and NSF have the highest spending by department towards climate change, with the EPA not even being officially recognized (included in "All Others"). Although climate change spending has only been documented since 2000, the signifcant increase in spending in the past 10 year may account for that increase in Energy Efficiency and Renewable Energy spike seen on Figure 3. 
+```{r climate, echo=FALSE}
+#info for Figure 4
+legend4 <- filter(climate, year == max(year)) %>%
+  arrange(desc(gcc_spending)) %>%
+  pull(department)
+#Figure 4:
+ggplot(climate, aes(year, gcc_spending, color = department)) + geom_line(size=1) +
+  scale_color_discrete(breaks = legend4, name = "Department") + ylab("Money Spent [USD]") +
+  xlab("Year") + theme_bw() + ggtitle("Figure 4. Climate change spending by department")
+```
